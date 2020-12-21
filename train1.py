@@ -5,9 +5,9 @@ from utils import *
 
 # the same parameter setting in article
 EPOCH = 100
-LR = 0.01
+LR = 5e-4
 MOMENTUM = 0.9
-WEIGHT_DECAY = 5e-4
+WEIGHT_DECAY = 1e-5
 save_path = './reactnet1.pth'
 
 def main():
@@ -37,16 +37,19 @@ def main():
 
     criterion = torch.nn.CrossEntropyLoss()
     criterion = criterion.cuda()
-
+    
+    optimizer = torch.optim.Adam(
+            [{'params' : bnbias},
+            {'params' : weight, 'weight_decay' : WEIGHT_DECAY}],
+            lr = LR)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = EPOCH)
+    #scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step : (1.0 - step / EPOCH))
+    
     '''
-    optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step : (1.0 - step / epochs))
-    '''
-
     optimizer = torch.optim.SGD(model.parameters(), lr = LR, momentum = MOMENTUM,
                                 weight_decay = WEIGHT_DECAY, nesterov = True)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = EPOCH)
-
+    '''
     best_accuracy = 0
 
     print('Start Training 100 EPOCHs')
